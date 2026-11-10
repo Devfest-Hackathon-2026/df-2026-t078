@@ -1,0 +1,186 @@
+import { captionCounter } from './composer-ui.js';
+// うちらのなう (Figma 207:914): the うちらのなう button opens a camera card. Take a selfie (or pick
+// one), add a word, and みせちゃう shares it with the house. The card then shows what was sent
+// and the gal's word on it (Figma 207:958), with a way to けーじばん.
+import { setBusy } from './busy.js';
+import { client, houseApi } from './api.js';
+import { blobOf, openCamera } from './camera.js';
+import { sfx } from './sfx.js';
+import { momentPraise } from './moment-praise.js';
+import { whileSending } from './sending.js';
+import { burst } from './celebrate.js';
+import { audienceChip } from './audience.js';
+
+const WIDTH = 600, HEIGHT = 755; // the 302×380 frame of the design
+
+export function setupMoments() {
+  const dialog = document.createElement('dialog');
+  dialog.className = 'now-dialog';
+  dialog.setAttribute('aria-labelledby', 'now-title');
+  dialog.innerHTML = `
+    <div class="now-head"><h2 id="now-title">うちらのなう</h2><button type="button" class="now-close" aria-label="閉じる"><img src="/settings/3ad13.svg" alt=""></button></div>
+    <p class="now-lead">今のうちら撮ろ〜</p>
+    <div class="now-frame">
+      <video muted playsinline autoplay hidden></video>
+      <canvas hidden aria-label="撮った写真"></canvas>
+      <p class="now-frame-note" hidden></p>
+      <p class="now-crop-hint" hidden>ドラッグで位置をえらべるよ</p>
+      <button type="button" class="now-retake" aria-label="撮り直す" hidden><img src="/moments/retake.svg" alt=""></button>
+      <div class="now-controls">
+        <label class="now-library" aria-label="ライブラリからえらぶ"><img src="/moments/library.svg" alt=""><input type="file" accept="image/*" hidden></label>
+        <button type="button" class="now-shutter" aria-label="撮る"><img src="/moments/shutter.svg" alt=""></button>
+        <button type="button" class="now-flip" aria-label="外カメラに切り替える" hidden><img src="/moments/flip.svg" alt=""></button>
+      </div>
+    </div>
+    <label class="now-field"><span>ひとこと（かかなくてもおけ♡）</span><input maxlength="30" placeholder="おは！きょうもがんばろ〜" autocomplete="off"></label>
+    <p class="now-caption" hidden></p>
+    <div class="now-praise" hidden></div>
+    <button type="button" class="now-share" disabled>みせちゃう</button>
+    <button type="button" class="now-board" hidden>け〜じばんをちぇけらする</button>
+    <p class="now-status" role="status" aria-live="polite"></p>`;
+  document.body.append(dialog);
+  const $ = selector => dialog.querySelector(selector);
+  const video = $('video'), canvas = $('canvas'), note = $('.now-frame-note'), retake = $('.now-retake');
+  const cropHint = $('.now-crop-hint');
+  const controls = $('.now-controls'), shutter = $('.now-shutter'), flip = $('.now-flip'), library = $('.now-library input');
+  const caption = $('.now-field input'), share = $('.now-share'), status = $('.now-status');
+  captionCounter(caption); // #228: the photo stays full size here (no small thumbnail)
+  const leadRow = document.createElement('div'); leadRow.className = 'now-lead-row'; $('.now-lead').before(leadRow); leadRow.append($('.now-lead'));
+  const lead = $('.now-lead'), field = $('.now-field'), sentCaption = $('.now-caption'), praiseBox = $('.now-praise'), toBoard = $('.now-board');
+  // Before sending: camera, word and みせちゃう. After: the photo, the word, the gal's line and けーじばん.
+  const setSent = sent => {
+    lead.textContent = sent ? 'そ〜しんできたよん' : '今のうちら撮ろ〜';
+    field.hidden = share.hidden = sent; toBoard.hidden = !sent;
+    if (sent) retake.hidden = true;
+    if (audience) audience.el.hidden = sent;
+    if (!sent) { dialog.querySelector('.now-frame .done-burst')?.remove(); sentCaption.hidden = praiseBox.hidden = true; praiseBox.replaceChildren(); dialog.classList.remove('is-sent'); }
+  };
+  const ctx = canvas.getContext('2d');
+  let stream = null, controller = null, taken = false, mediaId = null, requestId = null, busy = false, house = null, audience = null, shareTo = null;
+
+  const stopCamera = () => { stream?.getTracks().forEach(t => t.stop()); stream = null; video.srcObject = null; };
+  const facing = () => stream?.getVideoTracks()[0]?.getSettings().facingMode;
+  // The front camera is shown, and saved, like a mirror (#161).
+  const mirrored = () => facing() !== 'environment';
+  const showLive = () => {
+    taken = false; mediaId = null; picture = null; cropHint.hidden = true; canvas.hidden = retake.hidden = true; controls.hidden = false;
+    video.hidden = !stream; video.classList.toggle('is-mirrored', !!stream && mirrored());
+    share.disabled = true;
+  };
+  async function startCamera(mode = 'user') {
+    stopCamera(); shutter.disabled = true; // until the camera shows a picture
+    try {
+      stream = await openCamera(video, mode, [], controller.signal);
+      note.hidden = true; shutter.hidden = false; shutter.disabled = false;
+    } catch (e) {
+      if (e.name === 'AbortError') return;
+      stream = null; shutter.hidden = true; note.hidden = false;
+      note.textContent = 'カメラを使えないので、左下からライブラリの写真をえらんでね';
+    }
+    showLive();
+  }
+  // A taken or picked photo fills the frame (cut to its shape). #223: drag it to choose
+  // which part is kept; `focus` is where the window sits (0 = left/top, 1 = right/bottom).
+  let picture = null, focus = { x: .5, y: .5 };
+  function render() {
+    const { source, width, height, mirror } = picture;
+    const scale = Math.max(WIDTH / width, HEIGHT / height), w = WIDTH / scale, h = HEIGHT / scale;
+    ctx.setTransform(1, 0, 0, 1, 0, 0); ctx.clearRect(0, 0, WIDTH, HEIGHT);
+    if (mirror) ctx.setTransform(-1, 0, 0, 1, WIDTH, 0);
+    ctx.drawImage(source, (width - w) * focus.x, (height - h) * focus.y, w, h, 0, 0, WIDTH, HEIGHT);
+    ctx.setTransform(1, 0, 0, 1, 0, 0);
+    mediaId = null; // a new crop is uploaded again
+  }
+  function draw(from, width, height, mirror) {
+    // Keep a still copy, so the crop can move after the camera has moved on.
+    const still = document.createElement('canvas'); still.width = width; still.height = height;
+    still.getContext('2d').drawImage(from, 0, 0, width, height);
+    picture = { source: still, width, height, mirror }; focus = { x: .5, y: .5 };
+    canvas.width = WIDTH; canvas.height = HEIGHT; render();
+    const scale = Math.max(WIDTH / width, HEIGHT / height);
+    cropHint.hidden = Math.abs(width * scale - WIDTH) < 2 && Math.abs(height * scale - HEIGHT) < 2;
+    taken = true; video.hidden = true; canvas.hidden = false; retake.hidden = false; controls.hidden = true; note.hidden = true;
+    share.disabled = false; status.textContent = '';
+  }
+  // Drag the photo inside the frame (one finger or the mouse).
+  let drag = null;
+  canvas.style.touchAction = 'none';
+  canvas.addEventListener('pointerdown', e => {
+    if (!picture || busy || dialog.classList.contains('is-sent')) return;
+    drag = { x: e.clientX, y: e.clientY, focus: { ...focus } }; canvas.setPointerCapture(e.pointerId);
+  });
+  canvas.addEventListener('pointermove', e => {
+    if (!drag) return;
+    const { width, height, mirror } = picture, box = canvas.getBoundingClientRect();
+    const scale = Math.max(WIDTH / width, HEIGHT / height), shown = box.width / WIDTH; // screen px per canvas px
+    const slackX = (width * scale - WIDTH) * shown, slackY = (height * scale - HEIGHT) * shown; // how far it can move on screen
+    const dx = (e.clientX - drag.x) * (mirror ? -1 : 1), dy = e.clientY - drag.y;
+    focus = { x: slackX > 1 ? Math.min(1, Math.max(0, drag.focus.x - dx / slackX)) : .5, y: slackY > 1 ? Math.min(1, Math.max(0, drag.focus.y - dy / slackY)) : .5 };
+    render(); cropHint.hidden = true;
+  });
+  const endDrag = () => { drag = null; };
+  canvas.addEventListener('pointerup', endDrag); canvas.addEventListener('pointercancel', endDrag);
+
+  async function open() {
+    document.querySelector('#menu')?.close();
+    controller?.abort(); controller = new AbortController();
+    house = client.house; requestId = crypto.randomUUID(); caption.value = ''; status.textContent = ''; setSent(false);
+    // 共有範囲: a fresh pill each time (this house only), just above みせちゃう.
+    audience?.el.remove(); audience = audienceChip(); shareTo = null; leadRow.append(audience.el);
+    setBusy(share, false); share.disabled = true; caption.disabled = retake.disabled = false; busy = false;
+    dialog.showModal();
+    await startCamera('user');
+    const cameras = (await navigator.mediaDevices?.enumerateDevices?.().catch(() => []) || []).filter(d => d.kind === 'videoinput');
+    flip.hidden = !stream || cameras.length < 2;
+  }
+  dialog.addEventListener('close', () => { controller?.abort(); stopCamera(); });
+  $('.now-close').onclick = () => dialog.close();
+  toBoard.onclick = () => { dialog.close(); document.getElementById('open-board')?.click(); };
+
+  shutter.onclick = () => {
+    if (!stream || !video.videoWidth) return;
+    draw(video, video.videoWidth, video.videoHeight, mirrored()); sfx.shutter();
+  };
+  retake.onclick = () => { if (!busy) showLive(); };
+  flip.onclick = async () => {
+    const next = facing() === 'environment' ? 'user' : 'environment';
+    flip.disabled = true;
+    await startCamera(next);
+    flip.setAttribute('aria-label', facing() === 'environment' ? '内カメラに切り替える' : '外カメラに切り替える');
+    flip.disabled = false;
+  };
+  library.onchange = async () => {
+    const file = library.files[0]; library.value = ''; if (!file) return;
+    if (file.size > 25 * 1024 * 1024) { status.textContent = '25MB以下の写真をえらんでね'; return; }
+    const url = URL.createObjectURL(file), image = new Image();
+    try { image.src = url; await image.decode(); draw(image, image.naturalWidth, image.naturalHeight, false); }
+    catch { status.textContent = 'この写真は開けませんでした。JPEG・PNGなどの写真をえらんでね'; }
+    finally { URL.revokeObjectURL(url); }
+  };
+
+  share.onclick = async () => {
+    if (!taken || busy || client.house !== house) return;
+    busy = true; setBusy(share, true, 'そ〜しんちゅ〜'); caption.disabled = retake.disabled = true; status.textContent = '';
+    retake.hidden = true;
+    try {
+      const moment = await whileSending($('.now-frame'), async () => { // そ〜しんちゅ〜 over the photo
+        mediaId ||= (await houseApi('/media?kind=selfie', await blobOf(canvas, 'image/jpeg'))).id;
+        shareTo ||= audience?.shareTo() || [];
+        return houseApi('/moments', { request_id: requestId, media_id: mediaId, caption: caption.value.trim(), share_to: shareTo });
+      });
+      window.dispatchEvent(new CustomEvent('darupoyo:moment')); // けーじばん picks up the new selfie
+      stopCamera(); setSent(true);
+      dialog.classList.remove('is-sent'); void dialog.offsetWidth; dialog.classList.add('is-sent'); // a little pop
+      dialog.querySelector('.now-frame .done-burst')?.remove(); burst($('.now-frame')); // #175
+      sentCaption.textContent = moment.caption || ''; sentCaption.hidden = !moment.caption;
+      const praise = momentPraise(moment.praise, document.body.dataset.myTheme); praiseBox.hidden = !praise; if (praise) praiseBox.append(praise);
+      toBoard.focus();
+    } catch (e) {
+      retake.hidden = false;
+      status.textContent = e.message;
+      setBusy(share, false); share.disabled = false; caption.disabled = retake.disabled = false;
+    } finally { busy = false; }
+  };
+
+  document.querySelectorAll('#open-moments, [data-open-moments]').forEach(button => { button.onclick = () => void open(); });
+}

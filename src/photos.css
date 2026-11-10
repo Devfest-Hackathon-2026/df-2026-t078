@@ -1,0 +1,96 @@
+/* Photos and sharing: comments (#88), album calendar (#91),
+   profile photos (#96) and records from other houses (#99). */
+
+/* ---------- profile photos ---------- */
+.who-dot.has-avatar { overflow: hidden; padding: 0; background: #FFFFFF; }
+.who-dot.has-avatar img { width: 100%; height: 100%; object-fit: cover; border-radius: 50%; display: block; }
+.door-chips .chip-face { width: 26px; height: 26px; font-size: 12px; margin: 0 auto 2px; }
+.account-icon { overflow: hidden; }
+.account-icon img { width: 100%; height: 100%; object-fit: cover; display: block; }
+.avatar-row { display: flex; align-items: center; gap: 10px; flex-wrap: wrap; }
+.avatar-preview { width: 52px; height: 52px; border-radius: 50%; border: 2px solid var(--ink); background: var(--note); display: grid; place-items: center; font-weight: 900; font-size: 20px; overflow: hidden; flex: none; }
+.avatar-preview img { width: 100%; height: 100%; object-fit: cover; }
+.avatar-pick { cursor: pointer; }
+.social-card .push-row { margin-top: 4px; }
+
+/* ---------- comments ---------- */
+.comments { width: 100%; display: flex; flex-direction: column; gap: 8px; margin-top: 8px; text-align: left; }
+.comment-list { list-style: none; margin: 0; padding: 0; display: flex; flex-direction: column; gap: 6px; max-height: 150px; overflow-y: auto; }
+.comment { display: flex; align-items: flex-start; gap: 6px; font-size: 13px; line-height: 1.45; }
+.comment .who-dot { flex: none; margin-top: 1px; }
+.comment p { margin: 0; flex: 1; min-width: 0; overflow-wrap: anywhere; }
+.comment b { font-weight: 900; }
+.comment-delete { flex: none; border: 0; background: none; font-size: 16px; line-height: 1; color: var(--ink-soft); cursor: pointer; padding: 2px 6px; }
+.comment-form { display: flex; gap: 6px; }
+.comment-form input { flex: 1; min-width: 0; font: inherit; font-size: 16px; padding: 8px 10px; border: 2px solid var(--ink); border-radius: 999px; background: #FFFFFF; color: var(--ink); }
+.comment-form .btn { flex: none; }
+
+/* ---------- album: calendar and other houses ---------- */
+.log-cal { align-self:flex-start; display:grid; place-items:center; width:44px; height:44px; min-height:44px; padding:0; border:1px solid #6a55902e; border-radius:14px; background:#ffffffb3; color:var(--ink); box-shadow:0 2px 5px #3b256014; }
+.fp.is-foreign { position: relative; }
+.foreign-tag { position: absolute; left: 50%; bottom: -6px; transform: translateX(-50%); padding: 0 6px; border-radius: 999px; background: #E9DDFF; border: 1.5px solid var(--ink); font-size: 10px; font-weight: 900; white-space: nowrap; }
+dialog.album-calendar { margin: auto; inset: 0; width: min(340px, calc(100% - 32px)); padding: 16px; border: 2.5px solid var(--ink); border-radius: 22px; background: #FFFFFF; color: var(--ink); box-shadow: var(--pop); }
+dialog.album-calendar::backdrop { background: rgba(59, 37, 96, .45); }
+.cal-head { display: flex; align-items: center; justify-content: space-between; }
+.cal-head h2 { margin: 0; font-size: 17px; }
+.cal-nav { width: 40px; height: 40px; border: 2px solid var(--ink); border-radius: 50%; background: #FFFFFF; font-size: 20px; font-weight: 900; color: var(--ink); cursor: pointer; }
+.cal-grid { display: grid; grid-template-columns: repeat(7, 1fr); gap: 4px; margin: 12px 0 8px; text-align: center; }
+.cal-wd { font-size: 11px; font-weight: 900; color: var(--ink-soft); }
+.cal-day { aspect-ratio: 1; min-height: 36px; border: 0; border-radius: 10px; background: none; font: inherit; font-size: 14px; color: var(--ink-soft); }
+.cal-day.has-photos { background: #FFB3DE; border: 2px solid var(--ink); color: var(--ink); font-weight: 900; cursor: pointer; }
+.cal-day.is-today { outline: 2px dashed var(--berry); outline-offset: -2px; }
+.cal-day[aria-current="date"] { box-shadow: 0 0 0 3px #A8E6FF; }
+.cal-day:disabled { opacity: .5; }
+.cal-note { margin: 0 0 10px; font-size: 12px; color: var(--ink-soft); }
+.cal-close { width: 100%; }
+
+/* ---------- photo library (#117) ---------- */
+.capture .capture-library { display: flex; align-items: center; justify-content: center; box-sizing: border-box; cursor: pointer; }
+.keyboard-nav .capture .capture-library:focus-within { outline: 3px solid var(--ink); outline-offset: 2px; }
+
+/* #130: the いただきます check shows its result. */
+.meal-voice[data-state="checking"] [role=status] { color: var(--ink-soft); }
+.meal-voice[data-state="success"] [role=status] { font-weight: 900; font-size: 18px; color: #2F8A4E; }
+
+/* Album identity and actions share one compact, stable header. */
+.log-header { display:flex; align-items:flex-start; justify-content:space-between; gap:12px; flex:none; padding:0 0 14px; margin-bottom:2px; border-bottom:1px solid #6a55901c; }
+.log-heading { display:flex; flex-direction:column; align-items:flex-start; gap:6px; flex:1; min-width:0; }
+.log-heading #log-title { margin:0; padding:0; font:700 17px/26px var(--font-ui); overflow-wrap:anywhere; }
+.log-heading #log-total { display:inline-flex; margin:0; padding:2px 9px; border-radius:999px; background:#f1eafa; color:#795e9d; font:700 11px/18px var(--font-ui); }
+.log-actions { display:flex; align-items:center; gap:6px; flex:none; }
+.log-header #log-close,.log-header #log-calendar { position:static; display:grid; place-items:center; flex:none; width:44px; height:44px; min-height:44px; margin:0; padding:0; border:1px solid #6a559024; border-radius:14px; background:#faf6ff; box-shadow:none; }
+.log-header #log-close img { width:16px; height:16px; }
+.log-modal .log-day h3 { font:700 14px/24px var(--font-ui); margin-bottom:10px; }
+@media(max-width:359px) { .log-header { gap:8px; } .log-actions { gap:4px; } .log-heading #log-title { font-size:15px; line-height:23px; } }
+
+/* Your own post: edit its words or delete it */
+.post-owner { display: flex; flex-direction: column; gap: 8px; margin-top: 8px; }
+.post-owner-actions { display: flex; gap: 8px; justify-content: flex-end; }
+.post-owner-actions[hidden] { display: none; }
+.post-owner button { min-height: 44px; padding: 0 16px; border: 1px solid #775b9d33; border-radius: 999px; background: #ffffffcc; color: var(--ink, #3b2560); font: 700 14px/20px var(--font-ui, inherit); }
+.post-owner button.is-main { background: #ffdbf0; }
+.post-owner .post-owner-delete, .post-owner button.is-danger { color: #a32862; }
+.post-owner button.is-danger { background: #ffe3ec; border-color: #a3286240; }
+.post-owner-form label { display: flex; flex-direction: column; gap: 4px; font-size: 13px; color: #6a5590; }
+.post-owner-form input { font: inherit; font-size: 16px; padding: 10px 12px; border: 1px solid #775b9d55; border-radius: 14px; background: white; color: var(--ink, #3b2560); }
+.post-owner-count { align-self: flex-end; font-size: 12px; color: #6a5590; }
+.post-owner-count.is-over { color: #a32862; font-weight: 700; }
+.post-owner-form { display: flex; flex-direction: column; gap: 6px; }
+.post-owner-confirm p { margin: 0; font-size: 14px; color: #a32862; }
+
+/* 編集・削除 as round icon buttons */
+.post-owner .post-owner-icon { display: grid; place-items: center; width: 44px; height: 44px; min-height: 44px; padding: 0; border-radius: 50%; }
+.post-owner .post-owner-icon svg { display: block; }
+
+/* #224: comment box and its paper-plane send, in the soft pill style of the rest of the app */
+.comment-form { align-items: center; }
+.comment-form input { height: 44px; padding: 0 16px; border: 1px solid #775b9d40; background: #ffffffe6; }
+.comment-send { flex: none; display: grid; place-items: center; width: 44px; height: 44px; padding: 0; border: 1px solid #775b9d33; border-radius: 50%; background: #ffdbf0; color: #3b2560; cursor: pointer; }
+.comment-send svg { display: block; margin: 0 2px 0 0; }
+.comment-send:active { transform: scale(.94); }
+.comment-send.is-busy svg { animation: comment-send-fly .8s ease-in-out infinite; }
+@keyframes comment-send-fly { 50% { transform: translate(3px, -3px); opacity: .5; } }
+@media (prefers-reduced-motion: reduce) { .comment-send.is-busy svg { animation: none; } }
+
+/* the reaction you chose stands out */
+.reaction-row button.is-mine { background: #ffdbf0; }

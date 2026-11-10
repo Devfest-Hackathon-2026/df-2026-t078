@@ -1,0 +1,76 @@
+.onboarding{max-width:420px;width:calc(100% - 32px);border:3px solid #3b2560;border-radius:24px;padding:28px;color:#3b2560;background:#fff5fb;box-shadow:6px 6px 0 #d9c2ff}.onboarding::backdrop{background:#3b2560aa}.onboarding input,.capture input{box-sizing:border-box;width:100%;padding:14px;margin:8px 0;border:2px solid #3b2560;border-radius:12px;background:white;font:inherit}.onboarding .btn{display:block;width:100%;margin-top:12px}.capture video,.capture canvas,.capture img{display:block;width:100%;max-height:45vh;object-fit:contain;border-radius:16px;background:#eee}.capture .btn{margin-top:12px;width:100%}.capture p{line-height:1.6}.capture progress{width:100%;height:22px;accent-color:#ffb3de}.capture-status{min-height:3em}.shot img{width:100%;height:100%;object-fit:contain}.door-slots{grid-template-columns:repeat(var(--resident-count,4),1fr)}.reaction-row{display:flex;justify-content:center;gap:8px;margin:12px}.reaction-row button{padding:8px 14px;border:2px solid #3b2560;border-radius:20px;background:#fff4a8}.connection-status{position:fixed;top:4px;left:50%;transform:translateX(-50%);z-index:100;background:#fff4a8;border-radius:10px;padding:8px;max-width:90%;font-size:12px}.capture-beat{font-size:44px;text-align:center;transition:transform .1s}.capture-beat.on{transform:scale(1.3);color:#d154a2}
+
+/* One large microphone is both the action and the listening indicator. */
+.meal-voice{margin:16px 0;text-align:center;padding:20px 12px 12px;border-radius:24px;background:#fff5fb}
+.meal-voice-toggle{position:relative;display:grid;place-items:center;width:96px;height:96px;margin:4px auto 20px;border:2.5px solid #3b2560;border-radius:50%;background:var(--glossy,#ffb3de);color:#3b2560;box-shadow:4px 4px 0 #3b2560;cursor:pointer;transition:background .2s,transform .2s}
+.meal-voice-toggle:active{transform:scale(.95)}
+.keyboard-nav .meal-voice-toggle:focus-visible,.keyboard-nav .meal-voice-next:focus-visible{outline:3px solid #a32862;outline-offset:6px}
+.meal-voice-toggle svg{width:40px;height:40px;fill:none;stroke:currentColor;stroke-width:2.5;stroke-linecap:round;stroke-linejoin:round}
+.meal-voice-toggle .voice-check,.voice-stop{display:none}
+.meal-voice-status{min-height:65px}
+.meal-voice-status strong{display:block;font-size:20px}
+.meal-voice-status p{margin:5px 0 0;font-size:13px;color:#655575}
+.meal-voice-next{display:block;margin:12px auto 0;min-height:44px;padding:8px 16px;border:0;background:transparent;color:#655575;text-decoration:underline;text-underline-offset:4px;font:inherit;font-size:14px;cursor:pointer}
+.meal-voice-next.btn{text-decoration:none;color:#3b2560}
+.meal-voice-privacy{margin-top:10px;font-size:11px;color:#655575}
+.meal-voice-privacy summary{cursor:pointer;min-height:24px}
+.meal-voice-privacy p{margin:6px 0}
+.meal-voice[data-state="listening"] .meal-voice-toggle{background:#a32862;color:white;box-shadow:none;animation:voice-pulse 1.2s ease-in-out infinite}
+.meal-voice:is([data-state="starting"],[data-state="processing"]) .meal-voice-toggle{background:#fff0bc;box-shadow:none}
+.meal-voice:is([data-state="starting"],[data-state="listening"],[data-state="processing"]) .voice-mic{display:none}
+.meal-voice:is([data-state="starting"],[data-state="listening"],[data-state="processing"]) .voice-stop{display:block;width:26px;height:26px;border-radius:5px;background:currentColor}
+.meal-voice[data-state="success"] .meal-voice-toggle{background:#d8f5df;box-shadow:none;cursor:default}
+.meal-voice[data-state="success"] .voice-mic{display:none}
+.meal-voice[data-state="success"] .voice-check{display:block}
+@keyframes voice-pulse{50%{box-shadow:0 0 0 12px #a328621a}}
+@media(prefers-reduced-motion:reduce){.meal-voice .meal-voice-toggle,.meal-voice .meal-voice-toggle::after{animation:none!important;transition:none}}
+
+/* Rename yourself and the house from the settings account card. */
+.account-row>div{flex:1;min-width:0}
+.account-row b,.account-row small{overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+.account-edit{flex:none;width:44px;height:44px;border:2px solid #3b2560;border-radius:50%;background:#fff4a8;color:#3b2560;font-size:18px;cursor:pointer}
+.account-edit[aria-expanded="true"]{background:#ffb3de}
+.account-form{display:grid;gap:8px}
+.account-form[hidden],.account-row[hidden]{display:none}
+.account-form label{display:grid;grid-template-columns:4.5em 1fr;align-items:center;gap:8px;font-size:12px;font-weight:700;color:#655575}
+.account-form input{box-sizing:border-box;width:100%;min-width:0;min-height:44px;padding:8px 12px;border:2px solid #3b2560;border-radius:12px;background:white;font:inherit;font-size:16px;color:#3b2560}
+.account-actions{display:grid;grid-template-columns:1fr 1fr;gap:8px}
+.account-actions .btn{width:100%;min-height:44px;margin:0}
+.account-cancel{background:white}
+.account-actions [type=submit]{background:#ffb3de}
+
+/* Invite by short code. */
+.invite-code{box-sizing:border-box;display:block;width:100%;margin:8px 0;padding:14px;border:2.5px solid #3b2560;border-radius:16px;background:#fff5fb;color:#3b2560;font:inherit;font-size:30px;font-weight:900;letter-spacing:.12em;text-align:center}
+.invite-copy{display:block;width:100%;margin-top:8px;background:#ffb3de}
+.onboarding-swap{display:block;margin:8px auto 0;min-height:44px;padding:8px 16px;border:0;background:transparent;color:#655575;font:inherit;font-size:14px;font-weight:700;text-decoration:underline;text-underline-offset:4px;cursor:pointer}
+
+/* The fridge board names itself so it reads as today's to-do list (#22). Other fridge copy stays hidden. */
+.whiteboard .board-title{display:block!important;font-size:20px;text-align:center}
+.whiteboard .board-empty{display:block!important;width:100%;text-align:center;font-size:14px}
+
+/* Settings: phone notifications (#58). */
+.push-card[hidden],.push-note[hidden]{display:none}
+.push-row{display:flex;align-items:center;justify-content:space-between;gap:12px}
+.push-row .drawer-h{margin:0}
+.push-toggle{min-width:76px;min-height:44px;padding:0 16px;border:2px solid #3b2560;border-radius:999px;background:white;color:#3b2560;font:inherit;font-weight:900;cursor:pointer}
+.push-toggle[aria-pressed="true"]{background:#ffb3de}
+.push-toggle:disabled{opacity:.5;cursor:default}
+.push-note{margin:0;font-size:12px;line-height:1.5;color:#655575}
+.meal-voice[data-state="success"] .meal-voice-toggle:disabled{background:#d8f5df;color:#2f8a4e;border-color:#2f8a4e;opacity:1}
+/* A word with a chore record (optional). */
+.post-caption{display:flex;flex-direction:column;gap:8px;margin:4px 0 12px;font-size:14px;font-weight:700;color:#3b2560}
+.post-caption input{box-sizing:border-box;width:100%;height:48px;margin:0;padding:12px 14px;border:2px solid #3b2560;border-radius:12px;background:white;font:400 15px/normal var(--font-ui);color:#3b2560}
+.post-caption input::placeholder{color:#b3abbd;opacity:1}
+.post-caption input:disabled{opacity:.7}
+.pm-caption{margin:6px 0 0;font-size:14px;line-height:1.6;color:#3b2560;overflow-wrap:anywhere}
+
+/* #174: a check pops in when いただきます is heard. */
+.meal-voice-heard{display:none;width:72px;height:72px;margin:0 auto 8px}
+.meal-voice[data-state="success"] .meal-voice-heard{display:block;animation:heard-pop .45s cubic-bezier(.2,.8,.3,1.3) both}
+.meal-voice-heard svg{width:100%;height:100%;fill:none;stroke-linecap:round;stroke-linejoin:round}
+.meal-voice-heard circle{fill:#d8f5df;stroke:#2f8a4e;stroke-width:3.5}
+.meal-voice-heard path{stroke:#2f8a4e;stroke-width:6;stroke-dasharray:44;stroke-dashoffset:44}
+.meal-voice[data-state="success"] .meal-voice-heard path{animation:heard-draw .4s .25s ease-out forwards}
+@keyframes heard-pop{from{transform:scale(.3);opacity:0}to{transform:scale(1);opacity:1}}
+@keyframes heard-draw{to{stroke-dashoffset:0}}
+@media(prefers-reduced-motion:reduce){.meal-voice-heard,.meal-voice-heard path{animation:none!important;stroke-dashoffset:0}}
